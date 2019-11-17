@@ -74,6 +74,7 @@ def mpskmod(m):
     plot_val = awgn(plot_val)
     plt.plot(plt_time, plot_val)
     plt.grid(True)
+    plt.show()
     return plot_val
 
 
@@ -83,7 +84,7 @@ def awgn(d):
     sigma = var ** 0.5
     gauss = np.random.normal(mean, sigma, len(d))
     noisy = d + gauss
-    return d
+    return noisy
 
 def mpskdemod(m, sig):
     num_bit = int(log2(m))
