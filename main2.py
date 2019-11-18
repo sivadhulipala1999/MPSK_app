@@ -7,7 +7,9 @@ import matplotlib.pyplot as plt
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import ObjectProperty
-
+from kivy.properties import StringProperty, BooleanProperty
+from kivy.uix.image import Image
+from  kivy.properties import NumericProperty
 fc = 2  # Carrier freq Hz
 A = 2  # V
 b = 0.08  # Transition band, as a fraction of the sampling rate (in (0, 0.5)).
@@ -19,22 +21,43 @@ class MyLayout(FloatLayout):
     order = ObjectProperty(None)
     btn = ObjectProperty(None)
     hint = ObjectProperty(None)
-
+    noise_amp = ObjectProperty(None)
+    img_src = StringProperty('cameraman.tif')
+    img_noisy_src = StringProperty('cameraman_noisy.tif')
+    ipimg = ObjectProperty(None)
+    opimg = ObjectProperty(None)
+    size_x  = NumericProperty(100)
+    size_y = NumericProperty(100)
+    size_x_noisy = NumericProperty(0)
+    size_y_noisy = NumericProperty(0)
     def btnfunc(self):
         print('mpsk calc button pressed')
+        #self.ipimg.size = (100,0)
+        self.opimg.size_hint_y = None
+        self.opimg.height = '0dp'
+        self.size_x_noisy = 0
+        self.size_y_noisy = 0
+        self.do_layout()
         o = 0
         self.hint.text = "Message log: MPSK modulation started"
         try:
             o = int(self.order.text)
+            global noiseamp
+            noiseamp = float(self.noise_amp.text)
             if o % 2 != 0:
                 raise ValueError  # app should not work even when the order of modulation is not a power of 2
             image_sig = mpskmod(o)
             mpskdemod(o, image_sig)
+
+            self.size_x_noisy = 100
+            self.size_y_noisy = 100
+            self.opimg.reload()
             self.order.text = ""
             self.hint.text = "Message log: MPSK Modulation and Demodulation successfully performed"
         except ValueError:
             self.hint.text = "Message log: exponents of 2 expected"
             self.order.text = ""
+
 
 class MyNewApp(App):
     def build(self):
@@ -57,7 +80,7 @@ def mpskmod(m):
     cos_input = list(map(lambda x: x + 2 * pi * fc * time, mpsk_arr))
     modulated_image = np.cos(cos_input)
     modulated_image = np.reshape(modulated_image, modulated_image.size)
-    modulated_image = awgn(modulated_image)
+    modulated_image = awgn(modulated_image, noiseamp)
     return modulated_image
 
 def mat_bin(mat):
@@ -95,12 +118,12 @@ def image_process(num_bit):
     final_image = [int(x, 2) for x in temp] #to hold the final version of the image with the symbols
     return final_image
 
-def awgn(d):
+def awgn(d, noiseamp):
     """Addition of AWGN to the image before transmission"""
     mean = 0
     var = 0.2
     sigma = var ** 0.5
-    gauss = 20 * np.random.normal(mean, sigma, len(d))
+    gauss = noiseamp * np.random.normal(mean, sigma, len(d))
     noisy = d + gauss
     return noisy
 
@@ -130,11 +153,16 @@ def mpskdemod(m, sig):
     for i in range(len(demod_str)):
         if len(demod_str[i]) < 8:
             del demod_str[i] #removal of the padded bits
+    print("Removed extra bits")
     demod_dec = np.asarray(list(map(lambda x: int(x, 2), demod_str)))
-    demod_dec = np.reshape(demod_dec, (256, 256))
-    plt.figure('output image')
-    plt.imshow(demod_dec, cmap='Greys')
-    plt.show()
+    print(demod_dec.shape)
+    demod_dec = np.reshape(demod_dec, (225, 225))
+    print("plotting")
+    cv2.imwrite('cameraman_noisy.tif', demod_dec)
+    # img_noisy_src = "cameraman_noisy.tif"
+    # plt.figure('output image')
+    # plt.imshow(demod_dec, cmap='Greys')
+    # plt.show()
     return demod_dec
 
 if __name__ == "__main__":

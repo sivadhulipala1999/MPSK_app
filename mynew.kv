@@ -7,10 +7,14 @@
     multiline: False
     size_hint: 0.3,0.05
 
+
 <FloatLayout>:
     order: order
     btn: btn
     hint: hint
+    noise_amp: noise_amp
+    ipimg: ipimg
+    opimg: opimg
     Label:
         text: "Order of PSK Modulation: "
         pos_hint: {"x":-0.3, "y":0.42}
@@ -18,6 +22,14 @@
     TextInput:
         id: order
         pos_hint: {"x": 0.35, "top": 0.95}
+
+    Label:
+        text: "Noise Amplitude"
+        pos_hint: {"x":-0.3, "y":0.32}
+
+    TextInput:
+        id: noise_amp
+        pos_hint: {"x": 0.35, "top": 0.85}
 
     Button:
         id: btn
@@ -30,3 +42,16 @@
         id: hint
         text: "Message log: "
         pos_hint: {"x":0.1,"top":0.55}
+
+    Image:
+        id: ipimg
+        size_hint_x : None
+        size: (root.size_x, root.size_y)
+        source : 'cameraman.tif'
+
+    Image:
+        id: opimg
+        size_hint_y : None
+        size: (root.size_x_noisy, root.size_y_noisy)
+        pos_hint: {"x":0.1,"top":0.55}
+        source : 'cameraman_noisy.tif'
