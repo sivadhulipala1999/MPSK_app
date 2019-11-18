@@ -8,14 +8,15 @@
     size_hint: 0.3,0.05
 
 <FloatLayout>:
-    name: name
+    order: order
     btn: btn
+    hint: hint
     Label:
         text: "Order of PSK Modulation: "
         pos_hint: {"x":-0.3, "y":0.42}
 
     TextInput:
-        id: name
+        id: order
         pos_hint: {"x": 0.35, "top": 0.95}
 
     Button:
@@ -24,3 +25,8 @@
         on_press: root.btnfunc()
         pos_hint: {"x":0.38, "top":0.3}
         size_hint: 0.2,0.2
+
+    Label:
+        id: hint
+        text: "Message log: "
+        pos_hint: {"x":0.1,"top":0.55}
