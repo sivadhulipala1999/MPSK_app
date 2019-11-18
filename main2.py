@@ -23,17 +23,18 @@ class MyLayout(FloatLayout):
     def btnfunc(self):
         print('mpsk calc button pressed')
         o = 0
+        self.hint.text = "Message log: MPSK modulation started"
         try:
             o = int(self.order.text)
             if o % 2 != 0:
                 raise ValueError  # app should not work even when the order of modulation is not a power of 2
             image_sig = mpskmod(o)
+            mpskdemod(o, image_sig)
             self.order.text = ""
-            self.hint.text = "Message log: MPSK Modulation successfully performed"
+            self.hint.text = "Message log: MPSK Modulation and Demodulation successfully performed"
         except ValueError:
             self.hint.text = "Message log: exponents of 2 expected"
             self.order.text = ""
-        mpskdemod(o, image_sig)
 
 class MyNewApp(App):
     def build(self):
@@ -79,30 +80,19 @@ def image_process(num_bit):
     plt.figure('input image')
     plt.imshow(image, cmap='Greys')
     image = np.reshape(image, (image_size[0] * image_size[1],))
+    image = mat_bin(image)
     extra_bit = 0
     if (image.size) % (num_bit) != 0:
-        extra_bit = (image.size) % (num_bit)
-    image = np.concatenate((image, np.array([0] * extra_bit)))  # padding extra zeros to meet the requirement of mpsk
-    image = [int(ele) for ele in image]
-    image = mat_bin(image)
-
-    bits_per_row = 8 + extra_bit  # var holding the value of number of bits per row in the image matrix after mat_bin() func call
-    temp = np.empty(bits_per_row // num_bit,
-                    dtype='object')  # to hold the values of columns extracted with respect to bits required for modulation
-    start = 0
-    final_image = []  # to hold the final version of the reshape of the image
-    indices = []
-    for i in range(bits_per_row // num_bit):
-        t = [ele[start:start + num_bit] for ele in image]
-        temp[i] = t
-        for j in range(len(t)):
-            if t[j] == '':
-                print(j)
-                break
-        start += num_bit
-    for i in range(image.size):
-        for j in range(bits_per_row // num_bit):
-            final_image.append(int(temp[j][i], base=2))
+        extra_bit = num_bit - (image.size * 8) % (num_bit)
+    image = np.concatenate((image, np.array(['0'] * extra_bit)))  # padding extra zeros to meet the requirement of mpsk
+    print(image[len(image)-3:])
+    mod_str = ""
+    for num in image:
+        mod_str = mod_str + num
+    temp = [mod_str[i : i+num_bit] for i in range(0, len(mod_str), num_bit)]
+    print(temp[len(temp)-3:])
+    print('temp length: ', len(temp))
+    final_image = [int(x, 2) for x in temp] #to hold the final version of the image with the symbols
     return final_image
 
 def awgn(d):
@@ -115,6 +105,7 @@ def awgn(d):
     return noisy
 
 def mpskdemod(m, sig):
+    """MPSK Demodulation on the image data"""
     print(sig.size)
     num_bit = int(log2(m))
     phases = arange(0, 2 * pi, (2 * pi) / m)
@@ -135,11 +126,12 @@ def mpskdemod(m, sig):
         demod_str = demod_str + (np.binary_repr(i, num_bit))
     print(len(demod_str))
     demod_str = [demod_str[i:i+8] for i in range(0, len(demod_str), 8)]
-    print(demod_str)
+    print(demod_str[len(demod_str)-3:])
+    for i in range(len(demod_str)):
+        if len(demod_str[i]) < 8:
+            del demod_str[i] #removal of the padded bits
     demod_dec = np.asarray(list(map(lambda x: int(x, 2), demod_str)))
-    print(demod_dec)
     demod_dec = np.reshape(demod_dec, (256, 256))
-    print(demod_dec)
     plt.figure('output image')
     plt.imshow(demod_dec, cmap='Greys')
     plt.show()
