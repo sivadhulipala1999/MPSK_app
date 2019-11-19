@@ -16,7 +16,7 @@
     ipimg: ipimg
     opimg: opimg
     Label:
-        text: "Order of PSK Modulation: "
+        text: "Order: "
         pos_hint: {"x":-0.3, "y":0.42}
 
     TextInput:
@@ -24,7 +24,7 @@
         pos_hint: {"x": 0.35, "top": 0.95}
 
     Label:
-        text: "Noise Amplitude"
+        text: "Noise Strength: "
         pos_hint: {"x":-0.3, "y":0.32}
 
     TextInput:
@@ -36,7 +36,7 @@
         text: "calculate mpsk"
         on_press: root.btnfunc()
         pos_hint: {"x":0.38, "top":0.3}
-        size_hint: 0.2,0.2
+        size_hint: 0.35,0.2
 
     Label:
         id: hint

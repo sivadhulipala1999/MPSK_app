@@ -1,0 +1,3 @@
+title = MPSK App
+author = Group 4
+orientation = portrait 

@@ -7,9 +7,8 @@ import matplotlib.pyplot as plt
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import ObjectProperty
-from kivy.properties import StringProperty, BooleanProperty
-from kivy.uix.image import Image
-from  kivy.properties import NumericProperty
+from kivy.properties import StringProperty
+from kivy.properties import NumericProperty
 fc = 2  # Carrier freq Hz
 A = 2  # V
 b = 0.08  # Transition band, as a fraction of the sampling rate (in (0, 0.5)).
@@ -31,7 +30,6 @@ class MyLayout(FloatLayout):
     size_x_noisy = NumericProperty(0)
     size_y_noisy = NumericProperty(0)
     def btnfunc(self):
-        print('mpsk calc button pressed')
         #self.ipimg.size = (100,0)
         self.opimg.size_hint_y = None
         self.opimg.height = '0dp'
@@ -53,13 +51,14 @@ class MyLayout(FloatLayout):
             self.size_y_noisy = 100
             self.opimg.reload()
             self.order.text = ""
-            self.hint.text = "Message log: MPSK Modulation and Demodulation successfully performed"
+            self.noise_amp.text = ""
+            self.hint.text = "Message log: Done"
         except ValueError:
             self.hint.text = "Message log: exponents of 2 expected"
             self.order.text = ""
+            self.noise_amp.text = ""
 
-
-class MyNewApp(App):
+class Mpsk(App):
     def build(self):
         return MyLayout()
 
@@ -96,7 +95,6 @@ def mat_bin(mat):
 def image_process(num_bit):
     """Fetch the image and convert it into an array ready for mpsk modulation"""
     image = cv2.imread('cameraman.tif')
-    print(image.shape)
     image = image[:, :, 0]  # reducing the three time repetition to once
     image_size = np.shape(image)
 
@@ -108,13 +106,10 @@ def image_process(num_bit):
     if (image.size) % (num_bit) != 0:
         extra_bit = num_bit - (image.size * 8) % (num_bit)
     image = np.concatenate((image, np.array(['0'] * extra_bit)))  # padding extra zeros to meet the requirement of mpsk
-    print(image[len(image)-3:])
     mod_str = ""
     for num in image:
         mod_str = mod_str + num
     temp = [mod_str[i : i+num_bit] for i in range(0, len(mod_str), num_bit)]
-    print(temp[len(temp)-3:])
-    print('temp length: ', len(temp))
     final_image = [int(x, 2) for x in temp] #to hold the final version of the image with the symbols
     return final_image
 
@@ -129,7 +124,6 @@ def awgn(d, noiseamp):
 
 def mpskdemod(m, sig):
     """MPSK Demodulation on the image data"""
-    print(sig.size)
     num_bit = int(log2(m))
     phases = arange(0, 2 * pi, (2 * pi) / m)
     num_sym_tran = int(len(sig)/bit_rate)
@@ -144,20 +138,14 @@ def mpskdemod(m, sig):
         demod.append(np.argmax(op))
     demod = np.asarray(demod)
     demod_str = ""
-    print(demod.size, num_bit)
     for i in demod:
         demod_str = demod_str + (np.binary_repr(i, num_bit))
-    print(len(demod_str))
     demod_str = [demod_str[i:i+8] for i in range(0, len(demod_str), 8)]
-    print(demod_str[len(demod_str)-3:])
     for i in range(len(demod_str)):
         if len(demod_str[i]) < 8:
             del demod_str[i] #removal of the padded bits
-    print("Removed extra bits")
     demod_dec = np.asarray(list(map(lambda x: int(x, 2), demod_str)))
-    print(demod_dec.shape)
     demod_dec = np.reshape(demod_dec, (225, 225))
-    print("plotting")
     cv2.imwrite('cameraman_noisy.tif', demod_dec)
     # img_noisy_src = "cameraman_noisy.tif"
     # plt.figure('output image')
@@ -166,4 +154,4 @@ def mpskdemod(m, sig):
     return demod_dec
 
 if __name__ == "__main__":
-    MyNewApp().run()
+    Mpsk().run()
