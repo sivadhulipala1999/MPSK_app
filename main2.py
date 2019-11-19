@@ -97,7 +97,6 @@ def image_process(num_bit):
     image = cv2.imread('cameraman.tif')
     image = image[:, :, 0]  # reducing the three time repetition to once
     image_size = np.shape(image)
-
     plt.figure('input image')
     plt.imshow(image, cmap='Greys')
     image = np.reshape(image, (image_size[0] * image_size[1],))
@@ -145,7 +144,7 @@ def mpskdemod(m, sig):
         if len(demod_str[i]) < 8:
             del demod_str[i] #removal of the padded bits
     demod_dec = np.asarray(list(map(lambda x: int(x, 2), demod_str)))
-    demod_dec = np.reshape(demod_dec, (225, 225))
+    demod_dec = np.reshape(demod_dec, (256, 256)) #second argument is the image size tuple
     cv2.imwrite('cameraman_noisy.tif', demod_dec)
     # img_noisy_src = "cameraman_noisy.tif"
     # plt.figure('output image')
