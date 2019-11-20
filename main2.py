@@ -145,10 +145,6 @@ def mpskdemod(m, sig):
     demod_dec = np.asarray(list(map(lambda x: int(x, 2), demod_str)))
     demod_dec = np.reshape(demod_dec, (256, 256)) #second argument is the image size tuple
     cv2.imwrite('cameraman_noisy.tif', demod_dec)
-    # img_noisy_src = "cameraman_noisy.tif"
-    # plt.figure('output image')
-    # plt.imshow(demod_dec, cmap='Greys')
-    # plt.show()
     return demod_dec
 
 if __name__ == "__main__":
