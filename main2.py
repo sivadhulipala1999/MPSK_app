@@ -46,7 +46,6 @@ class MyLayout(FloatLayout):
                 raise ValueError  # app should not work even when the order of modulation is not a power of 2
             image_sig = mpskmod(o)
             mpskdemod(o, image_sig)
-
             self.size_x_noisy = 100
             self.size_y_noisy = 100
             self.opimg.reload()
